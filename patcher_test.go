@@ -232,6 +232,19 @@ func TestCombinedConflict(t *testing.T) {
 	checkError(t, output, err, "conflict", checkPatch(4, 0, "f"), checkPatch(3, 2, "xyz"))
 }
 
+func TestExample(t *testing.T) {
+	input := "The brown fox jumps twice over the lazy horse"
+
+	var p Patcher
+	p.InsertString(3, " quick")
+	p.Delete(strings.Index(input, "twice "), len("twice "))
+	p.RewriteString(40, 5, "dog")
+
+	actual, err := p.PatchString(input)
+
+	checkOutput(t, actual, err, "The quick brown fox jumps over the lazy dog")
+}
+
 func checkOutput(t *testing.T, actual string, err error, expected string) {
 	if err != nil {
 		t.Fatal("unexpected error:", err)
