@@ -15,6 +15,37 @@ func TestPassthrough(t *testing.T) {
 	checkOutput(t, actual, err, "abc")
 }
 
+func TestEmpty(t *testing.T) {
+	var p Patcher
+
+	if !p.Empty() {
+		t.Fatal("expected empty patcher")
+	}
+
+	p.Delete(1, 1)
+
+	if p.Empty() {
+		t.Fatal("expected non-empty patcher")
+	}
+
+	p.Reset()
+
+	if !p.Empty() {
+		t.Fatal("expected empty patcher after reset")
+	}
+}
+
+func TestEmptyZeroLength(t *testing.T) {
+	var p Patcher
+
+	p.InsertString(1, "")
+	p.RewriteString(2, 0, "")
+
+	if !p.Empty() {
+		t.Fatal("expected empty patcher")
+	}
+}
+
 func TestDelete(t *testing.T) {
 	input := "abcde"
 	var p Patcher
@@ -169,6 +200,26 @@ func TestRewrite(t *testing.T) {
 	actual, err := p.PatchString(input)
 
 	checkOutput(t, actual, err, "axyzc")
+}
+
+func TestRewriteInsert(t *testing.T) {
+	input := "ac"
+	var p Patcher
+	p.RewriteString(1, 0, "b")
+
+	actual, err := p.PatchString(input)
+
+	checkOutput(t, actual, err, "abc")
+}
+
+func TestRewriteDelete(t *testing.T) {
+	input := "abc"
+	var p Patcher
+	p.RewriteString(1, 1, "")
+
+	actual, err := p.PatchString(input)
+
+	checkOutput(t, actual, err, "ac")
 }
 
 func TestRewriteTouching(t *testing.T) {

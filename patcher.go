@@ -16,7 +16,7 @@ type patch struct {
 	// Not to be confused with len(data).
 	length int
 	// data is the new data that should be inserted.
-	data   []byte
+	data []byte
 }
 
 func (p patch) String() string {
@@ -29,6 +29,12 @@ type Patcher struct {
 	patches []patch
 }
 
+// Returns true if the patcher does not contain any edits.
+// Note that zero-length operations will not create an edit.
+func (p *Patcher) Empty() bool {
+	return len(p.patches) == 0
+}
+
 // Reset removes all edits from the Patcher.
 func (p *Patcher) Reset() {
 	p.patches = nil
@@ -37,10 +43,12 @@ func (p *Patcher) Reset() {
 // Delete remove length bytes at the given offset.
 // Offset is a byte position relative to the input data to PatchString/PatchBytes.
 func (p *Patcher) Delete(offset int, length int) {
-	p.patches = append(p.patches, patch{
-		offset: offset,
-		length: length,
-	})
+	if length != 0 {
+		p.patches = append(p.patches, patch{
+			offset: offset,
+			length: length,
+		})
+	}
 }
 
 // InsertString inserts the given string at the given offset.
@@ -57,10 +65,12 @@ func (p *Patcher) InsertString(offset int, data string) {
 // Multiple inserts to the same position are inserted one after the other
 // in the order of the calls to the insert functions.
 func (p *Patcher) InsertBytes(offset int, data []byte) {
-	p.patches = append(p.patches, patch{
-		offset: offset,
-		data:   data,
-	})
+	if len(data) != 0 {
+		p.patches = append(p.patches, patch{
+			offset: offset,
+			data:   data,
+		})
+	}
 }
 
 // RewriteString replaces length bytes at the given offset with the given string.
@@ -73,11 +83,13 @@ func (p *Patcher) RewriteString(offset int, length int, data string) {
 // Offset is a byte position relative to the input data to PatchString/PatchBytes.
 // The contents of data must not be changed before the call to PatchString/PatchBytes.
 func (p *Patcher) RewriteBytes(offset int, length int, data []byte) {
-	p.patches = append(p.patches, patch{
-		offset: offset,
-		length: length,
-		data:   data,
-	})
+	if length != 0 || len(data) != 0 {
+		p.patches = append(p.patches, patch{
+			offset: offset,
+			length: length,
+			data:   data,
+		})
+	}
 }
 
 // PatchString applies the recorded edits to the given input string.
